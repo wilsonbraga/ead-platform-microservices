@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_USER: ead_user
       POSTGRES_PASSWORD: ead_pass
-      POSTGRES_MULTIPLE_DATABASES: authuser_db,course_db,notification_db
+      POSTGRES_MULTIPLE_DATABASES: authuser_db,course_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
@@ -101,28 +101,7 @@ services:
   # ============================================================
   # Serviço: notification (porta 8082)
   # ============================================================
-  notification:
-    build:
-      context: ./notification
-      dockerfile: Dockerfile
-    container_name: ead-notification
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
-      SPRING_DATASOURCE_USERNAME: ead_user
-      SPRING_DATASOURCE_PASSWORD: ead_pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-    ports:
-      - "8082:8082"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - ead-network
-    restart: unless-stopped
+
 
 # ============================================================
 # Volumes e redes
