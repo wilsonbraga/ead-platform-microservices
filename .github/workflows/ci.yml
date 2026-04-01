@@ -13,10 +13,10 @@ on:
 jobs:
 
   # ============================================================
-  # Job 1 - Build de cada microsserviço
+  # Job 1 - Build e Testes de cada microsserviço
   # ============================================================
   build:
-    name: Build - ${{ matrix.service }}
+    name: Build & Test - ${{ matrix.service }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,16 +35,17 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build - ${{ matrix.service }}
+      - name: Build e Testes - ${{ matrix.service }}
         working-directory: ./${{ matrix.service }}
-        run: ./mvnw clean package -DskipTests -B
+        run: ./mvnw clean verify -B   # <- verify roda os testes, diferente do package -DskipTests
 
-      - name: Salvar JAR como artefato
+      - name: Publicar relatório de testes
         uses: actions/upload-artifact@v4
+        if: always()   # publica mesmo se os testes falharem
         with:
-          name: jar-${{ matrix.service }}
-          path: ${{ matrix.service }}/target/*.jar
-          retention-days: 1
+          name: test-results-${{ matrix.service }}
+          path: ${{ matrix.service }}/target/surefire-reports/
+          retention-days: 7
 
   # ============================================================
   # Job 2 - Validar que o Docker Compose está correto
