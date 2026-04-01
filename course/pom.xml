@@ -68,6 +68,13 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<!-- Banco em memória para testes -->
+		<dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
 		<!-- Actuator - Health Check -->
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
