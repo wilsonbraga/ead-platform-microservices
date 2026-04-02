@@ -7,7 +7,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?style=flat-square&logo=postgresql)
 ![CI](https://img.shields.io/github/actions/workflow/status/wilsonbraga/ead-platform-microservices/ci.yml?label=CI&style=flat-square&logo=githubactions)
 
-Plataforma de ensino a distância (EAD) desenvolvida com arquitetura de microsserviços utilizando Java Spring Boot. O projeto tem como objetivo demonstrar boas práticas de desenvolvimento, containerização com Docker e pipeline de CI/CD com GitHub Actions.
+Plataforma de ensino a distância (EAD) desenvolvida com arquitetura de microsserviços utilizando Java Spring Boot. O projeto tem como objetivo demonstrar boas práticas de desenvolvimento, containerização com Docker, testes automatizados e pipeline de CI/CD com GitHub Actions.
 
 ---
 
@@ -56,7 +56,6 @@ Responsável pelo gerenciamento de cursos e conteúdos da plataforma.
 Responsável pelo envio de notificações entre os serviços via mensageria.
 - Consumidor de eventos do RabbitMQ
 - Envio de e-mails e notificações
-- Banco: `notification_db`
 
 ---
 
@@ -73,6 +72,9 @@ Responsável pelo envio de notificações entre os serviços via mensageria.
 | Docker | - | Containerização |
 | Docker Compose | - | Orquestração local |
 | GitHub Actions | - | Pipeline de CI/CD |
+| JUnit 5 | - | Framework de testes |
+| Mockito | - | Mock para testes unitários |
+| H2 | - | Banco em memória para testes |
 | Maven | - | Gerenciamento de dependências |
 
 ---
@@ -83,20 +85,35 @@ Responsável pelo envio de notificações entre os serviços via mensageria.
 ead-platform-microservices/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Pipeline GitHub Actions
+│       └── ci.yml                    # Pipeline GitHub Actions
 ├── authuser/
 │   ├── src/
+│   │   ├── main/java/                # Código fonte
+│   │   └── test/
+│   │       ├── java/                 # Testes automatizados
+│   │       └── resources/
+│   │           └── application.properties  # Config de testes (H2)
 │   ├── Dockerfile
 │   └── pom.xml
 ├── course/
 │   ├── src/
+│   │   ├── main/java/
+│   │   └── test/
+│   │       ├── java/
+│   │       └── resources/
+│   │           └── application.properties
 │   ├── Dockerfile
 │   └── pom.xml
 ├── notification/
 │   ├── src/
+│   │   ├── main/java/
+│   │   └── test/
+│   │       ├── java/
+│   │       └── resources/
+│   │           └── application.properties
 │   ├── Dockerfile
 │   └── pom.xml
-├── docker-compose.yml          # Orquestração local completa
+├── docker-compose.yml                # Orquestração local completa
 └── README.md
 ```
 
@@ -143,6 +160,43 @@ docker compose ps
 
 ---
 
+## 🧪 Testes
+
+O projeto utiliza testes automatizados com **JUnit 5** e **Mockito**. Os testes rodam sem precisar do Docker ou banco de dados — utilizam H2 em memória.
+
+### Estratégia de testes
+
+| Camada | Ferramenta | O que testa |
+|---|---|---|
+| Service | JUnit 5 + Mockito | Lógica de negócio isolada |
+| Controller | MockMvc | Endpoints HTTP e validações |
+| Validation | JUnit 5 | Regras de validação customizadas |
+
+### Cobertura atual — authuser
+
+| Classe | Testes |
+|---|---|
+| `UserServiceImpl` | 13 testes unitários |
+| `AuthenticationController` | 7 testes de integração |
+| `UsernameConstraintImpl` | 10 testes unitários |
+
+### Como rodar os testes
+
+```bash
+# Rodar testes de um serviço específico
+cd authuser
+./mvnw test
+
+# Rodar build completo com testes
+./mvnw clean verify -B
+```
+
+### Rodar pelo STS
+
+Clique com botão direito na classe de teste → `Run As` → `JUnit Test`
+
+---
+
 ## 🌐 Endpoints de Health Check
 
 Após subir os serviços, acesse:
@@ -167,10 +221,11 @@ Push/PR
    │
    ▼
 ┌─────────────────────────────┐
-│  Matrix Build (paralelo)    │
-│  ├── Build authuser         │
-│  ├── Build course           │
-│  └── Build notification     │
+│  Matrix Build + Test        │
+│  (paralelo)                 │
+│  ├── Build & Test authuser  │
+│  ├── Build & Test course    │
+│  └── Build & Test notif.    │
 └──────────────┬──────────────┘
                │
                ▼
@@ -229,7 +284,8 @@ Este projeto segue o padrão [Conventional Commits](https://www.conventionalcomm
 feat(authuser): adiciona endpoint de registro de usuário
 fix(notification): corrige envio de e-mail assíncrono
 chore(docker): atualiza configuração do docker-compose
-docs: atualiza README com instruções de execução
+docs: atualiza README com instrucoes de execucao
+test(authuser): adiciona testes unitarios para UserServiceImpl
 ```
 
 ---
